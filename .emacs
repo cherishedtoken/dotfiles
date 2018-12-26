@@ -3,6 +3,9 @@
 (global-set-key [mouse-3] 'mouse-buffer-menu)
 (setq-default c-basic-offset 4
               indent-tabs-mode nil)
+(package-initialize)
+(when (memq window-system '(mac ns x))
+  (exec-path-from-shell-initialize))
 
 ;; turn on melpa
 (when (>= emacs-major-version 24)
@@ -116,7 +119,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (lsp-java bison-mode inf-ruby typescript-mode slime projectile js2-mode ggtags geiser company-irony-c-headers company-irony)))
+    (exec-path-from-shell lsp-java bison-mode inf-ruby typescript-mode slime projectile js2-mode ggtags geiser company-irony-c-headers company-irony)))
  '(send-mail-function (quote sendmail-send-it)))
 (put 'set-goal-column 'disabled nil)
 (put 'upcase-region 'disabled nil)
