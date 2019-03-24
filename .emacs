@@ -1,9 +1,14 @@
 (setq default-directory "/Users/christophergonzalez/")
 (setq inhibit-splash-screen t)
 (global-set-key [mouse-3] 'mouse-buffer-menu)
+(set-variable 'typescript-indent-level 2)
 (setq-default c-basic-offset 4
               indent-tabs-mode nil)
-(package-initialize)
+(if window-system
+    (progn (electric-indent-mode +1)
+	   (tool-bar-mode -1)
+           (package-initialize)
+	   ))
 (when (memq window-system '(mac ns x))
   (exec-path-from-shell-initialize))
 
@@ -35,6 +40,40 @@
           (lambda () (inferior-slime-mode t)))
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
 
+(defun setup-tide-mode ()
+  (interactive)
+  (tide-setup)
+  (flycheck-mode +1)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (eldoc-mode +1)
+  (tide-hl-identifier-mode +1)
+  ;; company is an optional dependency. You have to
+  ;; install it separately via package-install
+  ;; `M-x package-install [ret] company`
+  (company-mode +1))
+
+;; aligns annotation to the right hand side
+(setq company-tooltip-align-annotations t)
+
+;; formats the buffer before saving
+;; (add-hook 'before-save-hook 'tide-format-before-save)
+
+(add-hook 'typescript-mode-hook #'setup-tide-mode)
+
+;; (require 'js2-refactor)
+;; (require 'xref-js2)
+
+;; (add-hook 'typescript-mode-hook #'js2-refactor-mode)
+;; (js2r-add-keybindings-with-prefix "C-c C-r")
+;; (define-key js2-mode-map (kbd "C-k") #'js2r-kill)
+
+;; js-mode (which js2 is based on) binds "M-." which conflicts with xref, so
+;; unbind it.
+;; (define-key js-mode-map (kbd "M-.") nil)
+
+;; (add-hook 'typescript-mode-hook (lambda ()
+;;   (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
+
 (defalias 'irb 'inf-ruby)
 (defalias 'rr 'run-racket)
 (defalias 'rs 'replace-string)
@@ -43,10 +82,6 @@
 (defalias 'perl-mode 'cperl-mode)
 (defalias 'yes-or-no-p 'y-or-n-p)
 
-(if window-system
-    (progn (electric-indent-mode +1)
-	   (tool-bar-mode -1)
-	   ))
 (column-number-mode)
 (delete-selection-mode t)
 (show-paren-mode t)
@@ -119,8 +154,29 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (exec-path-from-shell lsp-java bison-mode inf-ruby typescript-mode slime projectile js2-mode ggtags geiser company-irony-c-headers company-irony)))
- '(send-mail-function (quote sendmail-send-it)))
+    (tide xref-js2 js2-refactor rjsx-mode exec-path-from-shell lsp-java bison-mode inf-ruby typescript-mode slime projectile js2-mode ggtags geiser company-irony-c-headers company-irony)))
+ '(send-mail-function (quote sendmail-send-it))
+ '(tooltip-hide-delay 10000)
+ '(typescript-indent-level 2))
 (put 'set-goal-column 'disabled nil)
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
+
+(defun query-swap-strings (from-string to-string &optional delimited start end)
+  "Swap occurrences of FROM-STRING and TO-STRING."
+  (interactive
+   (let ((common
+          (query-replace-read-args
+           (concat "Query swap"
+                   (if current-prefix-arg
+                       (if (eq current-prefix-arg '-) " backward" " word")
+                     "")
+                   (if (use-region-p) " in region" ""))
+           nil)))
+     (list (nth 0 common) (nth 1 common) (nth 2 common)
+           (if (use-region-p) (region-beginning))
+           (if (use-region-p) (region-end)))))
+  (perform-replace
+   (concat "\\(" (regexp-quote from-string) "\\)\\|" (regexp-quote to-string))
+   `(replace-eval-replacement replace-quote (if (match-string 1) ,to-string ,from-string))
+   t t delimited nil nil start end))
