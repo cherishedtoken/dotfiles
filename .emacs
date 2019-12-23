@@ -52,6 +52,14 @@
   ;; `M-x package-install [ret] company`
   (company-mode +1))
 
+(require 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
+(add-hook 'web-mode-hook
+          (lambda ()
+            (when (string-equal "tsx" (file-name-extension buffer-file-name))
+              (setup-tide-mode))))
+;; enable typescript-tslint checker
+
 ;; aligns annotation to the right hand side
 (setq company-tooltip-align-annotations t)
 
@@ -78,6 +86,7 @@
 (defalias 'rr 'run-racket)
 (defalias 'rs 'replace-string)
 (defalias 'sr 'replace-string) ;; make this typo way too often
+(defalias 'rb 'revert-buffer)
 (defalias 'sl 'slime)
 (defalias 'perl-mode 'cperl-mode)
 (defalias 'yes-or-no-p 'y-or-n-p)
@@ -154,10 +163,10 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (tide xref-js2 js2-refactor rjsx-mode exec-path-from-shell lsp-java bison-mode inf-ruby typescript-mode slime projectile js2-mode ggtags geiser company-irony-c-headers company-irony)))
+    (haskell-mode tide xref-js2 js2-refactor rjsx-mode exec-path-from-shell lsp-java bison-mode inf-ruby typescript-mode slime projectile js2-mode ggtags geiser company-irony-c-headers company-irony)))
  '(send-mail-function (quote sendmail-send-it))
  '(tooltip-hide-delay 10000)
- '(typescript-indent-level 2))
+ '(typescript-indent-level 2 t))
 (put 'set-goal-column 'disabled nil)
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
